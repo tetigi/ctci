@@ -73,6 +73,32 @@ fn urlify(s: &mut [char]) {
     }
 }
 
+fn is_palindrome(s: &str, offset: usize) -> bool {
+    let forwards = s.chars().chain(s.chars()).skip(offset);
+    let backwards = s.chars().chain(s.chars()).rev().skip(s.len() - offset);
+
+    forwards
+        .zip(backwards)
+        .take(s.len() / 2)
+        .all(|(x, y)| x == y)
+}
+
+fn palindrome_perm(s: &str) -> bool {
+    let mut chars = HashMap::new();
+
+    for c in s.chars().filter(|c| *c != ' ') {
+        chars.entry(c).and_modify(|e| *e += 1).or_insert(1);
+    }
+
+    let num_odd = chars.values().filter(|v| *v % 2 == 1).count();
+
+    if s.chars().filter(|c| *c != ' ').count() % 2 == 1 {
+        num_odd == 1
+    } else {
+        num_odd == 0
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -107,5 +133,22 @@ mod test {
         let expected: Vec<char> = "Mr%20John%20Smith".chars().collect();
 
         assert_eq!(expected, s);
+    }
+
+    #[test]
+    fn test_is_palindrome() {
+        assert_eq!(true, is_palindrome("abcba", 0));
+        assert_eq!(true, is_palindrome("abccba", 0));
+        assert_eq!(true, is_palindrome("abba", 0));
+        assert_eq!(true, is_palindrome("a", 0));
+        assert_eq!(false, is_palindrome("abca", 0));
+        assert_eq!(false, is_palindrome("abca", 0));
+
+        assert_eq!(true, is_palindrome("bcbaa", 4));
+    }
+
+    #[test]
+    fn test_palindrome_perm() {
+        assert_eq!(true, palindrome_perm("tact coa"))
     }
 }
