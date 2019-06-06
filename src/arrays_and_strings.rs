@@ -99,6 +99,147 @@ fn palindrome_perm(s: &str) -> bool {
     }
 }
 
+fn one_away(s1: &str, s2: &str) -> bool {
+    let mut used_edit = false;
+
+    let cs1: Vec<char> = s1.chars().collect();
+    let cs2: Vec<char> = s2.chars().collect();
+
+    let mut i1 = 0;
+    let mut i2 = 0;
+
+    while i1 < cs1.len() {
+        let c1 = cs1[i1];
+
+        if i2 >= cs2.len() {
+            if used_edit {
+                return false;
+            }
+
+            return i1 + 1 >= cs1.len();
+        } else {
+            let c2 = cs2[i2];
+
+            if c1 == c2 {
+                i1 += 1;
+                i2 += 1;
+            } else {
+                if i1 + 1 < cs1.len() && c2 == cs1[i1 + 1] {
+                    // delete this one
+
+                    if used_edit {
+                        return false;
+                    }
+
+                    used_edit = true;
+                    i1 += 1;
+                } else if i1 + 1 < cs1.len() && i2 + 1 < cs2.len() && cs1[i1 + 1] == cs2[i2 + 1] {
+                    // replace
+
+                    if used_edit {
+                        return false;
+                    }
+
+                    used_edit = true;
+                    i1 += 1;
+                    i2 += 1;
+                } else {
+                    // insert one
+
+                    if used_edit {
+                        return false;
+                    }
+
+                    used_edit = true;
+                    i1 += 1;
+                    i2 += 1;
+                }
+            }
+        }
+    }
+
+    true
+}
+
+struct Acc {
+    output: String,
+    letter: char,
+    times: usize,
+}
+
+fn string_compression(s: &str) -> String {
+    let cs: Vec<char> = s.chars().collect();
+
+    let mut acc: Acc = cs.iter().skip(1).fold(
+        Acc {
+            output: String::new(),
+            letter: cs[0],
+            times: 1,
+        },
+        |mut acc, &c| {
+            if c == acc.letter {
+                acc.times += 1;
+            } else {
+                acc.output.push_str(&format!("{}{}", acc.letter, acc.times));
+                acc.times = 1;
+                acc.letter = c;
+            }
+
+            acc
+        },
+    );
+
+    acc.output.push_str(&format!("{}{}", acc.letter, acc.times));
+    if acc.output.len() < s.len() {
+        acc.output
+    } else {
+        s.to_string()
+    }
+}
+
+fn rotate_matrix(image: &mut Vec<Vec<u8>>) {
+    let layers = image.len() / 2;
+    let n = image.len();
+
+    for layer in 0..layers {
+        println!("Layer {}", layer);
+        for i in 0..(n - (2 * layer)) - 1 {
+            println!("Swapping at i: {}", i);
+            let tmp = image[layer][layer + i];
+            image[layer][layer + i] = image[n - layer - i - 1][layer];
+            image[n - layer - i - 1][layer] = image[n - layer - 1][n - layer - i - 1];
+            image[n - layer - 1][n - layer - i - 1] = image[layer + i][n - layer - 1];
+            image[layer + i][n - layer - 1] = tmp;
+        }
+    }
+}
+
+fn zero_matrix(m: &mut Vec<Vec<u8>>) {
+    let mut rows = HashSet::new();
+    let mut cols = HashSet::new();
+
+    for x in 0..m.len() {
+        for y in 0..m[x].len() {
+            if m[x][y] == 0 {
+                rows.insert(x);
+                cols.insert(y);
+            }
+        }
+    }
+
+    for row in rows {
+        for j in 0..m[row].len() {
+            m[row][j] = 0;
+        }
+    }
+
+    for col in cols {
+        for i in 0..m.len() {
+            m[i][col] = 0;
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -150,5 +291,70 @@ mod test {
     #[test]
     fn test_palindrome_perm() {
         assert_eq!(true, palindrome_perm("tact coa"))
+    }
+
+    #[test]
+    fn test_one_away() {
+        assert_eq!(true, one_away("pale", "ple"));
+        assert_eq!(true, one_away("pales", "pale"));
+        assert_eq!(true, one_away("pale", "bale"));
+        assert_eq!(false, one_away("pale", "bake"));
+    }
+
+    #[test]
+    fn test_string_compression() {
+        assert_eq!("a2b1c5a3".to_string(), string_compression("aabcccccaaa"));
+        assert_eq!("abc".to_string(), string_compression("abc"));
+        assert_eq!("abbc".to_string(), string_compression("abbc"));
+    }
+
+    #[test]
+    fn test_rotate_matrix() {
+        let mut input = vec![vec![1, 2], vec![3, 4]];
+
+        rotate_matrix(&mut input);
+
+        assert_eq!(vec![vec![3, 1], vec![4, 2]], input);
+
+        let mut input = vec![
+            vec![1, 2, 3, 4],
+            vec![2, 3, 4, 1],
+            vec![3, 4, 1, 2],
+            vec![4, 1, 2, 3],
+        ];
+
+        rotate_matrix(&mut input);
+
+        assert_eq!(
+            vec![
+                vec![4, 3, 2, 1],
+                vec![1, 4, 3, 2],
+                vec![2, 1, 4, 3],
+                vec![3, 2, 1, 4]
+            ],
+            input
+        );
+    }
+
+    #[test]
+    fn test_zero_matrix() {
+        let mut input = vec![
+            vec![1, 1, 1, 1],
+            vec![1, 1, 0, 1],
+            vec![1, 1, 1, 1],
+            vec![0, 1, 1, 1],
+        ];
+
+        zero_matrix(&mut input);
+
+        assert_eq!(
+            vec![
+                vec![0, 1, 0, 1],
+                vec![0, 0, 0, 0],
+                vec![0, 1, 0, 1],
+                vec![0, 0, 0, 0]
+            ],
+            input
+        );
     }
 }
