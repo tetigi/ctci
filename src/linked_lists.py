@@ -132,3 +132,15 @@ def is_palindrome(xs):
 
     return True
 
+def get_intersection(xs, ys):
+    len_xs = len(xs)
+    len_ys = len(ys)
+    if len_xs > len_ys:
+        for _ in range(len_xs - len_ys):
+            xs = xs.next
+
+    while xs:
+        if xs == ys:
+            return xs
+        xs = xs.next
+        ys = ys.next
