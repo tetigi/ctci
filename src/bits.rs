@@ -15,7 +15,6 @@ fn flip_bit(n: u32) -> usize {
 
     while n != 0 {
         let bit = n & 1;
-        println!("bit is {}", bit);
         if bit == 1 {
             if seen_gap {
                 this_ones_len = 1;
@@ -25,7 +24,6 @@ fn flip_bit(n: u32) -> usize {
             seen_gap = false;
         } else {
             if seen_gap {
-                println!("pushing seq {:?}", this_seq);
                 seqs.push(this_seq);
                 this_seq = vec![];
             } else {
@@ -39,8 +37,6 @@ fn flip_bit(n: u32) -> usize {
 
     this_seq.push(this_ones_len);
     seqs.push(this_seq);
-
-    println!("{:?}", seqs);
 
     seqs.iter().fold(0, |acc, xs| {
         acc.max(xs.windows(2).fold(0, |acc, xs| acc.max(xs[0] + xs[1] + 1)))
