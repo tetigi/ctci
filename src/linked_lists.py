@@ -104,3 +104,31 @@ def sum_lists(n1, n2):
         output.append(1)
 
     return linked_list(output)
+
+def is_palindrome(xs):
+    acc = xs
+    tail_check = xs
+    rev = None
+
+    while tail_check:
+        this_node = Node(acc.value)
+        this_node.next = rev
+        rev = this_node
+        acc = acc.next
+        tail_check = tail_check.next
+
+        if tail_check:
+            tail_check = tail_check.next
+        else:
+            # is odd, so trim rev
+            rev = rev.next
+
+    while acc:
+        if acc.value != rev.value:
+            return False
+        else:
+            acc = acc.next
+            rev = rev.next
+
+    return True
+
