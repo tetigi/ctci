@@ -43,6 +43,27 @@ fn flip_bit(n: u32) -> usize {
     })
 }
 
+fn conversion(a: u32, b: u32) -> usize {
+    let mut a = a;
+    let mut b = b;
+
+    let mut count = 0;
+
+    while a != 0 || b != 0 {
+        let a_last = a & 1;
+        let b_last = b & 1;
+
+        if a_last != b_last {
+            count += 1;
+        }
+
+        a = a >> 1;
+        b = b >> 1;
+    }
+
+    count
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -56,5 +77,10 @@ mod tests {
     fn test_flip_bit() {
         assert_eq!(8, flip_bit(1775));
         assert_eq!(6, flip_bit(0b111011001101101));
+    }
+
+    #[test]
+    fn test_conversion() {
+        assert_eq!(2, conversion(29, 15));
     }
 }
