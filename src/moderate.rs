@@ -327,6 +327,87 @@ fn pattern_match(value: &str, pattern: &str) -> bool {
     return false;
 }
 
+fn expand_pond_size(
+    ponds: &Vec<Vec<usize>>,
+    seen: &mut HashSet<(usize, usize)>,
+    i: usize,
+    j: usize,
+) -> usize {
+    let width = ponds.len() as isize;
+    let height = ponds[0].len() as isize;
+
+    seen.insert((i, j));
+
+    let neighbours: Vec<(usize, usize)> = vec![
+        (1, 0),
+        (0, 1),
+        (0, -1),
+        (-1, 0),
+        (1, 1),
+        (-1, -1),
+        (1, -1),
+        (-1, 1),
+    ]
+    .into_iter()
+    .map(|(x, y)| (x + (i as isize), y + (j as isize)))
+    .filter(|(x, y)| {
+        *x >= 0
+            && *x < width
+            && *y >= 0
+            && *y < height
+            && ponds[*x as usize][*y as usize] == 0
+            && !seen.contains(&(*x as usize, *y as usize))
+    })
+    .map(|(x, y)| (x as usize, y as usize))
+    .collect();
+
+    let mut pond_size = 1;
+    for (ni, nj) in neighbours {
+        pond_size += expand_pond_size(ponds, seen, ni, nj);
+    }
+
+    pond_size
+}
+
+fn pond_sizes(ponds: Vec<Vec<usize>>) -> Vec<usize> {
+    let mut seen = HashSet::new();
+    let mut pond_sizes = vec![];
+
+    for (i, row) in ponds.iter().enumerate() {
+        for (j, height) in row.iter().enumerate() {
+            if seen.contains(&(i, j)) || *height != 0 {
+                continue;
+            } else {
+                let pond = expand_pond_size(&ponds, &mut seen, i, j);
+                pond_sizes.push(pond);
+            }
+        }
+    }
+
+    pond_sizes
+}
+
+fn sum_swap(xs: Vec<isize>, ys: Vec<isize>) -> (isize, isize) {
+    let sum_xs: isize = xs.iter().cloned().sum();
+    let sum_ys: isize = ys.iter().cloned().sum();
+    let sum_diff = sum_xs - sum_ys;
+
+    let x_vals: HashSet<isize> = xs.iter().cloned().collect();
+
+    ys.iter()
+        .cloned()
+        .filter_map(|y| {
+            let target_x = (sum_diff / 2) + y;
+            if x_vals.contains(&target_x) {
+                Some((target_x, y))
+            } else {
+                None
+            }
+        })
+        .next()
+        .unwrap()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -380,5 +461,23 @@ mod tests {
         assert_eq!(true, pattern_match("catcatgocatgo", "a"));
         assert_eq!(true, pattern_match("catcatgocatgo", "ab"));
         assert_eq!(true, pattern_match("catcatgocatgo", "b"));
+    }
+
+    #[test]
+    fn test_pond_sizes() {
+        assert_eq!(
+            vec![2, 4, 1],
+            pond_sizes(vec![
+                vec![0, 2, 1, 0],
+                vec![0, 1, 0, 1],
+                vec![1, 1, 0, 1],
+                vec![0, 1, 0, 1],
+            ])
+        )
+    }
+
+    #[test]
+    fn test_sum_swap() {
+        assert_eq!((1, 3), sum_swap(vec![4, 1, 2, 1, 1, 2], vec![3, 6, 3, 3]));
     }
 }
