@@ -174,35 +174,57 @@ def eight_queens():
         for i in range(8):
             new_valid.discard((x, i))
             new_valid.discard((i, y))
-            new_valid.discard((i, (i + c1) % 8))
-            new_valid.discard((i, (c2 - i) % 8))
+            if 0 <= i + c1 < 8:
+                new_valid.discard((i, i + c1))
+            if 0 <= c2 - i < 8:
+                new_valid.discard((i, c2 - i))
         return new_valid
 
     def f(positions, valid_spots):
         if tuple(sorted(positions)) in failed:
             return None
         if len(positions) == 8:
-            print("Yay")
-            return positions
+            return [tuple(sorted(positions))]
         else:
+            results = set()
             for spot in valid_spots:
                 remaining = clear_spots(spot, valid_spots)
                 result = f(positions + [spot], remaining)
                 if result:
-                    return result
-            failed.add(tuple(sorted(positions)))
-            return None
+                    results.update(result)
+            if results:
+                return results
+            else:
+                failed.add(tuple(sorted(positions)))
+                return None
 
     return f([], set((x, y) for x in range(8) for y in range(8)))
 
-def clear_spots(spot, valid_spots):
-    new_valid = valid_spots.copy()
-    (x, y) = spot
-    c1 = y - x
-    c2 = y + x
-    for i in range(8):
-        new_valid.discard((x, i))
-        new_valid.discard((i, y))
-        new_valid.discard((i, (i + c1) % 8))
-        new_valid.discard((i, (c2 - i) % 8))
-    return new_valid
+def eight_queens_2():
+    results = []
+
+    def place_queens(row, cols):
+        if row == 8:
+            results.append(cols.copy())
+        else:
+            for col in range(8):
+                if check_valid(cols, row, col):
+                    if len(cols) <= row:
+                        cols.append(col)
+                    else:
+                        cols[row] = col
+                    place_queens(row + 1, cols)
+
+    def check_valid(cols, row1, col1):
+        for row2 in range(row1):
+            col2 = cols[row2]
+            if col1 == col2:
+                return False
+            col_distance = abs(col1 - col2)
+            row_distance = abs(row1 - row2)
+            if col_distance == row_distance:
+                return False
+        return True
+
+    place_queens(0, [])
+    return results
