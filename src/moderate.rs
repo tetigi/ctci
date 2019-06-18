@@ -551,6 +551,96 @@ fn print_langtons_ant(k: usize) {
     grid.print();
 }
 
+use std::rc::Rc;
+
+struct Node<'a, T> {
+    data: &'a T,
+    next: Option<Rc<Node<'a, T>>>,
+    prev: Option<Rc<Node<'a, T>>>,
+}
+
+impl<'a, T> Node<'a, T> {
+    fn new<'b>(data: &'b T) -> Node<'b, T> {
+        Node {
+            data,
+            next: None,
+            prev: None,
+        }
+    }
+
+    fn unlink(&mut self) {
+        if let Some(next) = &mut self.next {
+            if let Some(prev) = &mut self.prev {
+                if let Some(n) = Rc::get_mut(next) {
+                    n.next = Some(Rc::clone(prev));
+                }
+                if let Some(p) = Rc::get_mut(prev) {
+                    p.prev = Some(Rc::clone(next));
+                }
+            } else if let Some(v) = Rc::get_mut(next) {
+                v.prev = None;
+            }
+        } else if let Some(prev) = &mut self.prev {
+            if let Some(v) = Rc::get_mut(prev) {
+                v.next = None;
+            }
+        }
+    }
+}
+
+/* I tried, okay??
+
+use std::hash::Hash;
+
+struct LRUCache<'a, K, V> {
+    first_last: Option<(Rc<Node<'a, K>>, Rc<Node<'a, K>>)>,
+    cache: HashMap<&'a K, V>,
+    max_size: usize,
+}
+
+impl<'a, K: Hash + Eq, V> LRUCache<'a, K, V> {
+    fn init<'b>(max_size: usize) -> LRUCache<'b, K, V> {
+        LRUCache {
+            first_last: None,
+            cache: HashMap::with_capacity(max_size),
+            max_size,
+        }
+    }
+
+    fn get(&mut self, key: K) -> Option<V> {
+        unimplemented!()
+    }
+
+    fn cache(&mut self, key: &'a K, value: V) {
+        if self.cache.len() < self.max_size {
+            self.cache.insert(key, value);
+        } else {
+            if let Some((first, last)) = &mut self.first_last {
+                if self.cache.len() == 1 {
+                    self.first_last = None;
+                } else {
+                    let last_but_one = if let Some(rc) = &last.prev {
+                        Rc::clone(rc)
+                    } else {
+                        panic!()
+                    };
+
+                    self.first_last = Some((Rc::clone(&first), last_but_one));
+                }
+
+                self.cache.insert(key, value);
+            } else {
+                self.cache.insert(key, value);
+                let node = Rc::new(Node::new(key));
+                let node_copy = Rc::clone(&node);
+                self.first_last = Some((node, node_copy));
+            }
+        }
+    }
+}
+
+*/
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -80,3 +80,57 @@ def smallest_difference(xs, ys):
 
 def number_max(a, b):
     return ((int(a / b) * a) / int(a / b)) + ((int(b / a) * b) / int(b / a))
+
+class Node:
+    def __init__(self, value):
+        self.value = value
+        self.next = None
+        self.prev = None
+
+class LRUCache:
+    def __init__(self, max_size):
+        self.max_size = max_size
+        self.data = {}
+        self.node_map = {}
+        self.first = None
+        self.last = None
+
+    def get(self, k):
+        if k in self.data:
+            node = self.node_map[k]
+            if node.prev:
+                node.prev.next = node.next
+
+            if node.next:
+                node.next.prev = node.prev
+
+            self.first.prev = node
+            self.first = node
+            return self.data[k]
+
+    def cache(self, k, v):
+        if k in self.data or len(self.data) < self.max_size:
+            self.data[k] = v
+
+            node = Node(k)
+            self.node_map[k] = node
+            if self.last:
+                self.last.next = node
+                node.prev = self.last
+                self.last = node
+            else:
+                self.first = node
+                self.last = node
+        else:
+            self.data.pop(self.last.value)
+            self.node_map.pop(self.last.value)
+            if len(self.data) == 1:
+                self.first = None
+                self.last = None
+            else:
+                last_but_one = self.last.prev
+                self.last.prev = None
+                last_but_one.next = None
+                self.last = last_but_one
+            self.data[k] = v
+
