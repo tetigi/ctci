@@ -408,6 +408,149 @@ fn sum_swap(xs: Vec<isize>, ys: Vec<isize>) -> (isize, isize) {
         .unwrap()
 }
 
+#[derive(Debug, Copy, Clone)]
+enum GridColour {
+    WHITE,
+    BLACK,
+}
+
+impl GridColour {
+    fn flip(&self) -> GridColour {
+        match self {
+            GridColour::WHITE => GridColour::BLACK,
+            GridColour::BLACK => GridColour::WHITE,
+        }
+    }
+}
+
+struct InfiniteGrid {
+    active_points: HashMap<(isize, isize), GridColour>,
+    max_y: isize,
+    min_y: isize,
+    max_x: isize,
+    min_x: isize,
+}
+
+impl InfiniteGrid {
+    fn print(&self) {
+        for y in self.min_y..=self.max_y {
+            for x in self.min_x..=self.max_x {
+                let colour = self
+                    .active_points
+                    .get(&(x, y))
+                    .unwrap_or(&GridColour::WHITE);
+                let output = match colour {
+                    GridColour::WHITE => "0",
+                    GridColour::BLACK => "1",
+                };
+
+                print!("{} ", output);
+            }
+            println!();
+        }
+    }
+
+    fn flip(&mut self, x: isize, y: isize) {
+        self.active_points
+            .entry((x, y))
+            .and_modify(|e| *e = e.flip())
+            .or_insert(GridColour::BLACK);
+        self.max_y = self.max_y.max(y);
+        self.min_y = self.min_y.min(y);
+        self.max_x = self.max_x.max(x);
+        self.min_x = self.min_x.min(x);
+    }
+
+    fn get_colour(&mut self, x: isize, y: isize) -> &GridColour {
+        self.max_y = self.max_y.max(y);
+        self.min_y = self.min_y.min(y);
+        self.max_x = self.max_x.max(x);
+        self.min_x = self.min_x.min(x);
+
+        self.active_points
+            .entry((x, y))
+            .or_insert(GridColour::WHITE)
+    }
+}
+
+impl Default for InfiniteGrid {
+    fn default() -> Self {
+        let mut active_points = HashMap::new();
+        active_points.insert((0, 0), GridColour::WHITE);
+
+        InfiniteGrid {
+            active_points,
+            max_y: 0,
+            min_y: 0,
+            max_x: 0,
+            min_x: 0,
+        }
+    }
+}
+
+#[derive(Debug)]
+enum Dir {
+    RIGHT,
+    DOWN,
+    LEFT,
+    UP,
+}
+
+impl Dir {
+    fn rotate_cw(&self) -> Dir {
+        match self {
+            Dir::RIGHT => Dir::DOWN,
+            Dir::DOWN => Dir::LEFT,
+            Dir::LEFT => Dir::UP,
+            Dir::UP => Dir::RIGHT,
+        }
+    }
+
+    fn rotate_ccw(&self) -> Dir {
+        match self {
+            Dir::RIGHT => Dir::UP,
+            Dir::DOWN => Dir::RIGHT,
+            Dir::LEFT => Dir::DOWN,
+            Dir::UP => Dir::LEFT,
+        }
+    }
+
+    fn pos_diff(&self) -> (isize, isize) {
+        match self {
+            Dir::RIGHT => (1, 0),
+            Dir::DOWN => (0, 1),
+            Dir::LEFT => (-1, 0),
+            Dir::UP => (0, -1),
+        }
+    }
+}
+
+fn print_langtons_ant(k: usize) {
+    let mut pos = (0, 0);
+    let mut grid: InfiniteGrid = Default::default();
+    let mut direction = Dir::RIGHT;
+
+    for _ in 0..k {
+        let colour = grid.get_colour(pos.0, pos.1);
+
+        match colour {
+            GridColour::WHITE => {
+                direction = direction.rotate_cw();
+            }
+            GridColour::BLACK => {
+                direction = direction.rotate_ccw();
+            }
+        }
+
+        grid.flip(pos.0, pos.1);
+
+        let (dx, dy) = direction.pos_diff();
+        pos = (pos.0 + dx, pos.1 + dy);
+    }
+
+    grid.print();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -479,5 +622,12 @@ mod tests {
     #[test]
     fn test_sum_swap() {
         assert_eq!((1, 3), sum_swap(vec![4, 1, 2, 1, 1, 2], vec![3, 6, 3, 3]));
+    }
+
+    #[test]
+    fn test_langtons_ant() {
+        print_langtons_ant(200);
+
+        panic!();
     }
 }
