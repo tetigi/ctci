@@ -641,6 +641,42 @@ impl<'a, K: Hash + Eq, V> LRUCache<'a, K, V> {
 
 */
 
+// / -> * -> + -> -
+fn calculator(expr: &str) -> f64 {
+    fn pluses(expr: &str) -> f64 {
+        expr.split('+')
+            .map(|x| times(x))
+            .fold(0.0, |res, x| res + x)
+    }
+
+    fn times(expr: &str) -> f64 {
+        expr.split('*')
+            .map(|x| divides(x))
+            .fold(1.0, |res, x| res * x)
+    }
+
+    fn divides(expr: &str) -> f64 {
+        let ops: Vec<f64> = expr.split('/').map(|x| x.parse().unwrap()).collect();
+
+        if ops.len() == 1 {
+            ops[0]
+        } else if ops.len() > 2 {
+            panic!("Uh oh! {}", expr);
+        } else {
+            ops[0] / ops[1]
+        }
+    }
+
+    let minuses: Vec<f64> = expr.split('-').map(|x| pluses(x)).collect();
+    let mut res = minuses[0];
+
+    for ops in minuses.iter().skip(1) {
+        res -= ops;
+    }
+
+    res
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -717,7 +753,10 @@ mod tests {
     #[test]
     fn test_langtons_ant() {
         print_langtons_ant(200);
+    }
 
-        panic!();
+    #[test]
+    fn test_calculator() {
+        assert_eq!(23.5, calculator("2*3+5/6*3+15")); //6 + 5/18 + 15 == 21 + 15/6 = 2 + 3/6 = 23.5
     }
 }

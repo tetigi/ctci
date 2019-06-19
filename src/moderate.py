@@ -155,3 +155,4 @@ class LRUCache:
                 self.first = node
             print(f"New queue is {self.first}")
             self.data[k] = v
+
