@@ -86,6 +86,11 @@ class Node:
         self.value = value
         self.next = None
         self.prev = None
+    def __repr__(self):
+        out = str(self.value)
+        if self.next:
+            out += f" -> {self.next}"
+        return out
 
 class LRUCache:
     def __init__(self, max_size):
@@ -94,6 +99,7 @@ class LRUCache:
         self.node_map = {}
         self.first = None
         self.last = None
+        print(f"Initialising with {max_size} elements!")
 
     def get(self, k):
         if k in self.data:
@@ -105,32 +111,47 @@ class LRUCache:
                 node.next.prev = node.prev
 
             self.first.prev = node
+            node.next = self.first
             self.first = node
+            print(f"Used {k}. Queue is now {self.first}")
             return self.data[k]
+        print(f"No such element at {k}")
 
     def cache(self, k, v):
-        if k in self.data or len(self.data) < self.max_size:
+        if k in self.data:
+            self.data[k] = v
+            print(f"{k} is already present. Replacing value..")
+        elif len(self.data) < self.max_size:
             self.data[k] = v
 
             node = Node(k)
             self.node_map[k] = node
-            if self.last:
-                self.last.next = node
-                node.prev = self.last
-                self.last = node
+            if self.first:
+                self.first.prev = node
+                node.next = self.first
+                self.first = node
             else:
                 self.first = node
                 self.last = node
+            print(f"{k} fits. New queue is {self.first}")
         else:
+            print("Does not fit. Popping last value..")
             self.data.pop(self.last.value)
             self.node_map.pop(self.last.value)
+
+            node = Node(k)
+            self.node_map[k] = node
             if len(self.data) == 1:
-                self.first = None
-                self.last = None
+                self.first = node
+                self.last = node
             else:
                 last_but_one = self.last.prev
+                print(f"Last but one is {last_but_one}")
                 self.last.prev = None
                 last_but_one.next = None
                 self.last = last_but_one
+                self.first.prev = node
+                node.next = self.first
+                self.first = node
+            print(f"New queue is {self.first}")
             self.data[k] = v
-
