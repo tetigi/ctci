@@ -156,3 +156,62 @@ class LRUCache:
             print(f"New queue is {self.first}")
             self.data[k] = v
 
+OPS = set(['+', '-', '/', '*'])
+
+PRIORITIES = {'+': 0, '-': 0, '/': 1, '*': 1}
+
+def tokenize(expr):
+    tokens = []
+    buff = ''
+    for c in expr:
+        if c.isdigit():
+            if buff.isdigit():
+                buff += c
+            else:
+                buff = c
+        else:
+            if buff:
+                tokens.append(float(buff))
+                buff = ''
+            tokens.append(c)
+
+    if buff:
+        tokens.append(float(buff))
+    return tokens
+
+def priority(op):
+    return PRIORITIES[op]
+
+def reduce_one(operands, operators):
+    op2 = operands.pop()
+    op1 = operands.pop()
+    operator = operators.pop()
+
+    if operator == '*':
+        operands.append(op1 * op2)
+    elif operator == '+':
+        operands.append(op1 + op2)
+    elif operator == '-':
+        operands.append(op1 - op2)
+    elif operator == '/':
+        operands.append(op1 / op2)
+
+def calculate(expr):
+    ops = []
+    operands = []
+
+    tokens = tokenize(expr)
+
+    for token in tokens:
+        if token in OPS:
+            while len(operands) > 1 and priority(token) <= priority(ops[-1]):
+                reduce_one(operands, ops)
+            ops.append(token)
+        else:
+            operands.append(token)
+        print(ops, operands)
+
+    while len(operands) > 1:
+        reduce_one(operands, ops)
+
+    return operands[0]

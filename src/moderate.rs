@@ -668,6 +668,7 @@ fn calculator(expr: &str) -> f64 {
     }
 
     let minuses: Vec<f64> = expr.split('-').map(|x| pluses(x)).collect();
+    println!("{:?}", minuses);
     let mut res = minuses[0];
 
     for ops in minuses.iter().skip(1) {
@@ -758,5 +759,6 @@ mod tests {
     #[test]
     fn test_calculator() {
         assert_eq!(23.5, calculator("2*3+5/6*3+15")); //6 + 5/18 + 15 == 21 + 15/6 = 2 + 3/6 = 23.5
+        assert_eq!(-27.0, calculator("2-6-7*8/2+5")); //6 + 5/18 + 15 == 21 + 15/6 = 2 + 3/6 = 23.5
     }
 }
