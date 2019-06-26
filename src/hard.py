@@ -166,3 +166,24 @@ def best_from(ps, best_from):
                 longest = maybe
 
     return longest
+
+from itertools import combinations_with_replacement
+
+def kth_multiple(k):
+    results = {3: 3, 5: 5, 7: 7}
+    indices = {3: 0, 5: 0, 7: 0}
+    nums = []
+    seen = set()
+    for j in range(k):
+        (k, smallest) = min([(k, results[k]) for k in results], key=lambda x: x[1])
+        nums.append(smallest)
+        next_num = nums[indices[k]] * k
+        while next_num in seen:
+            indices[k] += 1
+            next_num = nums[indices[k]] * k
+        seen.add(next_num)
+        results[k] = next_num
+
+    return nums
+
+
